@@ -8,16 +8,22 @@ export default function OnboardingPage() {
   return (
     <main>
       <Nav />
-      <section className="max-w-2xl mx-auto p-6 space-y-4">
-        <Card>
-          <h1 className="text-2xl font-semibold mb-2">Demo Onboarding</h1>
-          <p className="text-white/70">Step {step}/3 • Demo-only. No real money, withdrawals, execution, or payments.</p>
+      <section className="mx-auto max-w-xl space-y-4 p-6">
+        <Card className="p-8">
+          <h1 className="text-3xl font-semibold">Welcome to RegnantX</h1>
+          <p className="mt-2 text-white/70">Secure demo onboarding and login simulation.</p>
+          <p className="mt-4 text-xs text-white/60">Demo-only access. Real-money operations are permanently disabled.</p>
         </Card>
-        <Card>
-          <p className="mb-4">{step === 1 ? 'Choose risk profile' : step === 2 ? 'Enable copy trader preferences' : 'Configure smart alerts'}</p>
+        <Card className="space-y-4 p-8">
+          <p className="text-sm text-accent">Step {step} / 3</p>
+          <div className="grid gap-3">
+            <input className="glass rounded-xl p-3" placeholder="Email" />
+            <input className="glass rounded-xl p-3" placeholder="Password" type="password" />
+            <input className="glass rounded-xl p-3" placeholder={step === 1 ? 'Risk Profile' : step === 2 ? 'Trading Preferences' : 'Notification Level'} />
+          </div>
           <div className="flex gap-2">
-            <Button className="bg-white/10 text-white" disabled={step === 1} onClick={() => setStep(step - 1)}>Back</Button>
-            <Button onClick={() => setStep(Math.min(3, step + 1))}>{step === 3 ? 'Finish' : 'Next'}</Button>
+            <Button className="bg-white/10 text-white" disabled={step === 1} onClick={() => setStep((s) => s - 1)}>Back</Button>
+            <Button onClick={() => setStep((s) => Math.min(3, s + 1))}>{step === 3 ? 'Enter Platform' : 'Continue'}</Button>
           </div>
         </Card>
       </section>

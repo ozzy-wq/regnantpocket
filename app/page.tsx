@@ -6,15 +6,22 @@ export default function HomePage() {
   return (
     <main>
       <Nav />
-      <section className="max-w-6xl mx-auto p-6 md:p-10">
-        <Card className="p-10 text-center">
-          <p className="text-accent mb-3">Premium Demo Trading Experience</p>
-          <h1 className="text-4xl font-bold mb-4">RegnantX</h1>
-          <p className="text-white/70 mb-6">Demo-only trading simulator with onboarding, dashboard analytics, and local persistence.</p>
-          <div className="flex flex-wrap gap-3 justify-center">
-            <Link href="/onboarding" className="rounded-xl bg-accent text-black px-4 py-2 font-semibold">Start Demo</Link>
-            <Link href="/dashboard" className="rounded-xl border border-white/20 px-4 py-2">Open Dashboard</Link>
+      <section className="mx-auto grid max-w-7xl gap-6 p-6 md:grid-cols-3">
+        <Card className="md:col-span-2 p-10 animate-float">
+          <p className="mb-3 text-accent">Premium Demo Trading Platform</p>
+          <h1 className="mb-4 text-5xl font-bold">RegnantX</h1>
+          <p className="mb-6 text-white/70">Ultra premium fintech experience for simulated crypto trading, analytics, copy strategies, and paper portfolio workflows.</p>
+          <div className="flex flex-wrap gap-3">
+            <Link href="/onboarding" className="rounded-xl bg-accent px-4 py-2 font-semibold text-black">Launch Demo</Link>
+            <Link href="/dashboard" className="rounded-xl border border-white/20 px-4 py-2">View Dashboard</Link>
           </div>
+          <p className="mt-6 text-xs text-white/60">Demo-only. No real trading, real funds, deposits, withdrawals, custody, or payment systems.</p>
+        </Card>
+        <Card className="p-6">
+          <h2 className="mb-4 text-xl font-semibold">Platform Modules</h2>
+          <ul className="space-y-2 text-sm text-white/75">
+            {['Dashboard', 'Trading', 'Watchlist', 'Wallet', 'Open Positions', 'Trade History', 'Copy Trading', 'Settings'].map((m) => <li key={m}>• {m}</li>)}
+          </ul>
         </Card>
       </section>
     </main>
