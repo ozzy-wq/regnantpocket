@@ -1,13 +1,14 @@
-import { Nav } from '@/components/nav';
-import { Dashboard } from '@/components/dashboard';
+import { AppShell } from '@/components/layout/app-shell';
+import { ResponsiveDashboardLayout } from '@/components/dashboard/responsive-dashboard-layout';
 
 export default function DashboardPage() {
   return (
-    <main>
-      <Nav />
-      <section className="mx-auto max-w-7xl p-6">
-        <Dashboard />
-      </section>
-    </main>
+    <AppShell>
+      <div className="mb-5">
+        <h1 className="text-3xl font-semibold">Professional Fintech Dashboard</h1>
+        <p className="mt-1 text-white/60">TradingView + Stripe + Binance inspired demo workspace.</p>
+      </div>
+      <ResponsiveDashboardLayout />
+    </AppShell>
   );
 }
