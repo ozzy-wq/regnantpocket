@@ -1,0 +1,2 @@
+export const MARKET_SYMBOLS = ['BTCUSD', 'ETHUSD', 'SOLUSD', 'XAUUSD'];
+export const STARTING_WALLET = 10000;
