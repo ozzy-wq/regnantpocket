@@ -21,7 +21,9 @@ type Position = {
   openedAt: string;
 };
 
+type Alert = { id: string; text: string; active: boolean };
 type Screen = 'trade' | 'markets' | 'copy' | 'wallet' | 'history' | 'settings';
+const STORAGE_KEY = 'regnantx-demo-v1';
 
 function cn(...classes: Array<string | false | undefined>) {
   return classes.filter(Boolean).join(' ');
@@ -45,7 +47,7 @@ function Pill({ children, tone = 'neutral' }: { children: React.ReactNode; tone?
 
 function StatCard({ label, value, sub, tone = 'white' }: { label: string; value: string; sub: string; tone?: 'white' | 'green' | 'red' | 'orange' }) {
   return (
-    <div className="rounded-3xl border border-white/10 bg-white/[0.045] p-5 shadow-soft backdrop-blur">
+    <div className="rounded-3xl border border-white/10 bg-white/[0.045] p-5 shadow-soft backdrop-blur transition hover:-translate-y-0.5 hover:bg-white/[0.065]">
       <p className="text-sm text-white/45">{label}</p>
       <p className={cn('mt-2 text-3xl font-black', tone === 'green' && 'text-emerald-300', tone === 'red' && 'text-rose-300', tone === 'orange' && 'text-accent', tone === 'white' && 'text-white')}>{value}</p>
       <p className="mt-1 text-xs text-white/35">{sub}</p>
@@ -79,12 +81,41 @@ export function RegnantXApp() {
   const [riskMode, setRiskMode] = useState<RiskMode>('Balanced');
   const [positions, setPositions] = useState<Position[]>([]);
   const [history, setHistory] = useState<Position[]>([]);
+  const [alerts, setAlerts] = useState<Alert[]>([
+    { id: 'btc-breakout', text: 'BTC breaks $69,000', active: true },
+    { id: 'eth-volume', text: 'ETH volume expansion', active: true },
+    { id: 'risk-guard', text: 'Risk guard enabled', active: true }
+  ]);
   const [toast, setToast] = useState('');
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved) as Partial<{ balance: number; riskMode: RiskMode; positions: Position[]; history: Position[]; alerts: Alert[] }>;
+        if (typeof parsed.balance === 'number') setBalance(parsed.balance);
+        if (parsed.riskMode) setRiskMode(parsed.riskMode);
+        if (Array.isArray(parsed.positions)) setPositions(parsed.positions);
+        if (Array.isArray(parsed.history)) setHistory(parsed.history);
+        if (Array.isArray(parsed.alerts)) setAlerts(parsed.alerts);
+      }
+    } catch {
+      // Ignore corrupted local demo state.
+    } finally {
+      setHydrated(true);
+    }
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => setTick((value) => value + 1), 1500);
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ balance, riskMode, positions, history, alerts }));
+  }, [hydrated, balance, riskMode, positions, history, alerts]);
 
   useEffect(() => {
     if (!toast) return;
@@ -151,6 +182,7 @@ export function RegnantXApp() {
     setBalance(STARTING_BALANCE);
     setPositions([]);
     setHistory([]);
+    setRiskMode('Balanced');
     setToast('Demo reset complete.');
   }
 
@@ -164,7 +196,7 @@ export function RegnantXApp() {
   ];
 
   return (
-    <main className="min-h-screen overflow-hidden bg-bg text-white">
+    <main className="min-h-screen overflow-hidden bg-bg pb-24 text-white lg:pb-0">
       <div className="pointer-events-none fixed inset-0 -z-10">
         <div className="absolute left-[-12rem] top-[-12rem] h-96 w-96 rounded-full bg-accent/20 blur-3xl" />
         <div className="absolute right-[-12rem] top-10 h-[34rem] w-[34rem] rounded-full bg-blue-700/20 blur-3xl" />
@@ -199,12 +231,12 @@ export function RegnantXApp() {
             <div className="mb-5 flex items-start justify-between gap-4">
               <div>
                 <p className="text-sm text-white/45">Live-feel dashboard</p>
-                <h1 className="text-5xl font-black">{selectedAsset.symbol}/USDT</h1>
+                <h1 className="text-4xl font-black md:text-5xl">{selectedAsset.symbol}/USDT</h1>
                 <p className="mt-2 text-white/50">{selectedAsset.name} · {selectedAsset.category}</p>
               </div>
               <div className="text-right">
                 <Pill tone="orange">AI {selectedAsset.score}%</Pill>
-                <p className="mt-3 text-3xl font-black">{priceFormat(selectedAsset.price)}</p>
+                <p className="mt-3 text-2xl font-black md:text-3xl">{priceFormat(selectedAsset.price)}</p>
                 <p className={selectedAsset.liveChange >= 0 ? 'text-emerald-300' : 'text-rose-300'}>{selectedAsset.liveChange >= 0 ? '+' : ''}{selectedAsset.liveChange.toFixed(2)}%</p>
               </div>
             </div>
@@ -230,6 +262,7 @@ export function RegnantXApp() {
             <Panel title="Market Watchlist" subtitle="Tap asset to trade">
               <div className="space-y-2">{assets.slice(0, 6).map((asset) => <button key={asset.symbol} onClick={() => setSelectedSymbol(asset.symbol)} className={cn('grid w-full grid-cols-[1fr_auto] rounded-2xl border p-4 text-left', selectedSymbol === asset.symbol ? 'border-accent/50 bg-accent/10' : 'border-white/10 bg-black/20')}><div><p className="font-black">{asset.symbol} <span className="text-sm font-normal text-white/40">{asset.name}</span></p><p className="text-xs text-white/35">AI {asset.score} · {asset.volume}</p></div><p className={asset.liveChange >= 0 ? 'text-emerald-300' : 'text-rose-300'}>{asset.liveChange >= 0 ? '+' : ''}{asset.liveChange.toFixed(2)}%</p></button>)}</div>
             </Panel>
+            <Alerts alerts={alerts} setAlerts={setAlerts} />
             <Positions positions={livePositions} closePosition={closePosition} />
           </div>
         </section>
@@ -241,13 +274,23 @@ export function RegnantXApp() {
       {screen === 'history' && <History history={history} />}
       {screen === 'settings' && <Settings riskMode={riskMode} setRiskMode={setRiskMode} />}
 
-      {toast && <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-2xl border border-accent/20 bg-card px-5 py-3 text-sm font-bold shadow-glow">{toast}</div>}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 grid grid-cols-6 gap-1 border-t border-white/10 bg-bg/90 p-2 backdrop-blur-xl lg:hidden">
+        {nav.map((item) => (
+          <button key={item.id} onClick={() => setScreen(item.id)} className={cn('rounded-xl px-1 py-2 text-xs font-bold', screen === item.id ? 'bg-accent text-black' : 'text-white/45')}>{item.label}</button>
+        ))}
+      </nav>
+
+      {toast && <div className="fixed bottom-20 left-1/2 z-50 -translate-x-1/2 rounded-2xl border border-accent/20 bg-card px-5 py-3 text-sm font-bold shadow-glow lg:bottom-6">{toast}</div>}
     </main>
   );
 }
 
 function Panel({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
   return <div className="rounded-[2rem] border border-white/10 bg-white/[0.045] p-5 shadow-soft backdrop-blur"><div className="mb-4"><h2 className="text-2xl font-black">{title}</h2>{subtitle && <p className="text-sm text-white/40">{subtitle}</p>}</div>{children}</div>;
+}
+
+function Alerts({ alerts, setAlerts }: { alerts: Alert[]; setAlerts: (alerts: Alert[]) => void }) {
+  return <Panel title="Smart Alerts" subtitle="Demo signal triggers"><div className="space-y-2">{alerts.map((alert) => <button key={alert.id} onClick={() => setAlerts(alerts.map((item) => item.id === alert.id ? { ...item, active: !item.active } : item))} className="flex w-full items-center justify-between rounded-2xl border border-white/10 bg-black/20 p-3 text-left text-sm"><span>{alert.text}</span><Pill tone={alert.active ? 'blue' : 'neutral'}>{alert.active ? 'Active' : 'Off'}</Pill></button>)}</div></Panel>;
 }
 
 function Positions({ positions, closePosition }: { positions: Position[]; closePosition: (id: string) => void }) {
