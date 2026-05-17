@@ -7,7 +7,7 @@ export function canOpenTrade(balance:number,amount:number){
 }
 
 export function formatMoney(value:number){
- return `$${value.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}`
+ return `$${value.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}`
 }
 
 export function calculatePnl(amount:number,entry:number,current:number,side:'LONG'|'SHORT'){
