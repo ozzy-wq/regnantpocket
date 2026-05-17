@@ -1,5 +1,5 @@
-import { RegnantXApp } from '@/components/regnantx-app';
+import { PocketTerminalV2 } from '@/components/pocket-terminal-v2';
 
 export default function HomePage(){
- return <RegnantXApp/>;
+ return <PocketTerminalV2/>;
 }
