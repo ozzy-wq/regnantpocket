@@ -60,7 +60,7 @@ export async function POST(request: Request) {
       idempotencyKey: body.idempotencyKey
     });
 
-    return NextResponse.json({ trade: serializeTrade(result.trade), balance: Number(result.balance) }, { status: 201 });
+    return NextResponse.json({ trade: serializeTrade(result.trade), balance: result.balance.toNumber() }, { status: 201 });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'TRADE_FAILED';
     const status = ['INVALID_STAKE', 'INVALID_EXPIRY', 'INVALID_IDEMPOTENCY_KEY', 'INSTRUMENT_UNAVAILABLE'].includes(message)
