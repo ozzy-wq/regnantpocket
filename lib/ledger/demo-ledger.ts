@@ -1,5 +1,6 @@
 import { LedgerAccountType, LedgerEntrySide, Prisma } from '@prisma/client';
 import { db } from '@/lib/db';
+import { assertBalancedLedger, calculateLedgerBalance } from '@/lib/ledger/invariants';
 
 const STARTING_CREDITS = new Prisma.Decimal(10_000);
 
@@ -24,16 +25,17 @@ export async function ensureDemoAccount(userId: string) {
       create: { key: 'system:demo-treasury', type: LedgerAccountType.DEMO_TREASURY }
     });
 
+    const entries = [
+      { accountId: treasury.id, side: LedgerEntrySide.DEBIT, amount: STARTING_CREDITS },
+      { accountId: userAccount.id, side: LedgerEntrySide.CREDIT, amount: STARTING_CREDITS }
+    ];
+    assertBalancedLedger(entries);
+
     await tx.ledgerTransaction.create({
       data: {
         reference: `welcome:${userId}`,
         description: 'Initial non-cash demo credit grant',
-        entries: {
-          create: [
-            { accountId: treasury.id, side: LedgerEntrySide.DEBIT, amount: STARTING_CREDITS },
-            { accountId: userAccount.id, side: LedgerEntrySide.CREDIT, amount: STARTING_CREDITS }
-          ]
-        }
+        entries: { create: entries }
       }
     });
 
@@ -48,10 +50,5 @@ export async function getDemoBalance(userId: string) {
   });
 
   if (!account) return new Prisma.Decimal(0);
-
-  return account.entries.reduce((balance, entry) => {
-    return entry.side === LedgerEntrySide.CREDIT
-      ? balance.plus(entry.amount)
-      : balance.minus(entry.amount);
-  }, new Prisma.Decimal(0));
+  return calculateLedgerBalance(account.entries);
 }
