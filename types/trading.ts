@@ -1,21 +1,34 @@
-export type Direction = 'LONG' | 'SHORT';
+export type TradeDirection = 'up' | 'down';
+export type TradeStatus = 'open' | 'won' | 'lost' | 'draw';
 
-export interface Position {
+export interface Instrument {
+  symbol: string;
+  name: string;
+  category: 'forex' | 'crypto' | 'commodity' | 'index';
+  price: number;
+  payoutPercent: number;
+  changePercent: number;
+}
+
+export interface DemoTrade {
   id: string;
   symbol: string;
-  direction: Direction;
-  qty: number;
+  direction: TradeDirection;
+  stake: number;
   entryPrice: number;
-  currentPrice: number;
+  payoutPercent: number;
   openedAt: string;
+  expiresAt: string;
+  status: TradeStatus;
 }
 
-export interface TradeRecord extends Position {
-  closedAt: string;
-  pnl: number;
+export interface QuotePoint {
+  time: number;
+  price: number;
 }
 
-export interface Wallet {
+export interface DemoWallet {
   balance: number;
   equity: number;
+  currency: 'USD';
 }
