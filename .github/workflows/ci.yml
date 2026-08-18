@@ -40,9 +40,9 @@ jobs:
         run: npm run db:generate
       - name: Validate Prisma schema
         run: npm run db:validate
-      - name: Create CI database schema
-        run: npx prisma db push --skip-generate
-      - name: Unit tests
+      - name: Apply checked-in migrations
+        run: npx prisma migrate deploy
+      - name: Unit and integration tests
         run: npm test
       - name: Type check
         run: npm run typecheck
