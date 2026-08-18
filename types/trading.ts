@@ -1,5 +1,5 @@
 export type TradeDirection = 'up' | 'down';
-export type TradeStatus = 'open' | 'won' | 'lost' | 'draw';
+export type TradeStatus = 'open' | 'won' | 'lost' | 'draw' | 'cancelled';
 
 export interface Instrument {
   symbol: string;
@@ -20,6 +20,8 @@ export interface DemoTrade {
   openedAt: string;
   expiresAt: string;
   status: TradeStatus;
+  settlementPrice?: number | null;
+  settledAt?: string | null;
 }
 
 export interface QuotePoint {
@@ -30,5 +32,6 @@ export interface QuotePoint {
 export interface DemoWallet {
   balance: number;
   equity: number;
-  currency: 'USD';
+  currency: 'RP';
+  monetaryValue: false;
 }
