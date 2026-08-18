@@ -1,0 +1,134 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TradeDirection {
+  UP
+  DOWN
+}
+
+enum TradeStatus {
+  OPEN
+  WON
+  LOST
+  DRAW
+  CANCELLED
+}
+
+enum LedgerAccountType {
+  USER_DEMO
+  TRADE_ESCROW
+  DEMO_TREASURY
+}
+
+enum LedgerEntrySide {
+  DEBIT
+  CREDIT
+}
+
+model User {
+  id           String      @id @default(cuid())
+  email        String      @unique
+  passwordHash String
+  displayName  String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  sessions     Session[]
+  demoAccount  DemoAccount?
+  trades       DemoTrade[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+}
+
+model DemoAccount {
+  id        String        @id @default(cuid())
+  userId    String        @unique
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accounts  LedgerAccount[]
+}
+
+model Instrument {
+  id          String      @id @default(cuid())
+  symbol      String      @unique
+  name        String
+  category    String
+  payoutRatio Decimal     @db.Decimal(10, 6)
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  trades      DemoTrade[]
+}
+
+model DemoTrade {
+  id             String         @id @default(cuid())
+  userId         String
+  instrumentId   String
+  direction      TradeDirection
+  status         TradeStatus    @default(OPEN)
+  stake          Decimal        @db.Decimal(20, 8)
+  payoutRatio    Decimal        @db.Decimal(10, 6)
+  entryPrice     Decimal        @db.Decimal(24, 10)
+  settlementPrice Decimal?      @db.Decimal(24, 10)
+  openedAt       DateTime       @default(now())
+  expiresAt      DateTime
+  settledAt      DateTime?
+  idempotencyKey String         @unique
+  user           User           @relation(fields: [userId], references: [id], onDelete: Restrict)
+  instrument     Instrument     @relation(fields: [instrumentId], references: [id], onDelete: Restrict)
+  ledgerTx       LedgerTransaction?
+
+  @@index([userId, status, openedAt])
+  @@index([instrumentId, expiresAt])
+}
+
+model LedgerAccount {
+  id            String            @id @default(cuid())
+  demoAccountId String?
+  key           String            @unique
+  type          LedgerAccountType
+  createdAt     DateTime          @default(now())
+  demoAccount   DemoAccount?      @relation(fields: [demoAccountId], references: [id], onDelete: Restrict)
+  entries       LedgerEntry[]
+
+  @@index([demoAccountId, type])
+}
+
+model LedgerTransaction {
+  id             String        @id @default(cuid())
+  tradeId        String?       @unique
+  reference      String        @unique
+  description    String
+  createdAt      DateTime      @default(now())
+  trade          DemoTrade?    @relation(fields: [tradeId], references: [id], onDelete: Restrict)
+  entries        LedgerEntry[]
+}
+
+model LedgerEntry {
+  id            String            @id @default(cuid())
+  transactionId String
+  accountId     String
+  side          LedgerEntrySide
+  amount        Decimal           @db.Decimal(20, 8)
+  createdAt     DateTime          @default(now())
+  transaction   LedgerTransaction @relation(fields: [transactionId], references: [id], onDelete: Restrict)
+  account       LedgerAccount     @relation(fields: [accountId], references: [id], onDelete: Restrict)
+
+  @@index([accountId, createdAt])
+  @@index([transactionId])
+}
