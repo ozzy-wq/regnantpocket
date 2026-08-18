@@ -55,11 +55,11 @@ model Session {
 }
 
 model DemoAccount {
-  id        String        @id @default(cuid())
-  userId    String        @unique
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
-  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String          @id @default(cuid())
+  userId    String          @unique
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   accounts  LedgerAccount[]
 }
 
@@ -76,22 +76,22 @@ model Instrument {
 }
 
 model DemoTrade {
-  id             String         @id @default(cuid())
-  userId         String
-  instrumentId   String
-  direction      TradeDirection
-  status         TradeStatus    @default(OPEN)
-  stake          Decimal        @db.Decimal(20, 8)
-  payoutRatio    Decimal        @db.Decimal(10, 6)
-  entryPrice     Decimal        @db.Decimal(24, 10)
-  settlementPrice Decimal?      @db.Decimal(24, 10)
-  openedAt       DateTime       @default(now())
-  expiresAt      DateTime
-  settledAt      DateTime?
-  idempotencyKey String         @unique
-  user           User           @relation(fields: [userId], references: [id], onDelete: Restrict)
-  instrument     Instrument     @relation(fields: [instrumentId], references: [id], onDelete: Restrict)
-  ledgerTx       LedgerTransaction?
+  id                 String              @id @default(cuid())
+  userId             String
+  instrumentId       String
+  direction          TradeDirection
+  status             TradeStatus         @default(OPEN)
+  stake              Decimal             @db.Decimal(20, 8)
+  payoutRatio        Decimal             @db.Decimal(10, 6)
+  entryPrice         Decimal             @db.Decimal(24, 10)
+  settlementPrice    Decimal?            @db.Decimal(24, 10)
+  openedAt           DateTime            @default(now())
+  expiresAt          DateTime
+  settledAt          DateTime?
+  idempotencyKey     String              @unique
+  user               User                @relation(fields: [userId], references: [id], onDelete: Restrict)
+  instrument         Instrument          @relation(fields: [instrumentId], references: [id], onDelete: Restrict)
+  ledgerTransactions LedgerTransaction[]
 
   @@index([userId, status, openedAt])
   @@index([instrumentId, expiresAt])
@@ -110,13 +110,15 @@ model LedgerAccount {
 }
 
 model LedgerTransaction {
-  id             String        @id @default(cuid())
-  tradeId        String?       @unique
-  reference      String        @unique
-  description    String
-  createdAt      DateTime      @default(now())
-  trade          DemoTrade?    @relation(fields: [tradeId], references: [id], onDelete: Restrict)
-  entries        LedgerEntry[]
+  id          String        @id @default(cuid())
+  tradeId     String?
+  reference   String        @unique
+  description String
+  createdAt   DateTime      @default(now())
+  trade       DemoTrade?    @relation(fields: [tradeId], references: [id], onDelete: Restrict)
+  entries     LedgerEntry[]
+
+  @@index([tradeId, createdAt])
 }
 
 model LedgerEntry {
